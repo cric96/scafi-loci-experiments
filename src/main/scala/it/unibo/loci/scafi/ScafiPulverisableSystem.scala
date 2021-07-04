@@ -12,11 +12,12 @@ import rescala.reactives
 import java.util.UUID
 
 @multitier trait ScafiPulverisableSystem extends LogicalPulverisableSystem {
-  override type ID = LociIncarnation.ID
-  override type Sensor = Set[(String, String)]
+  override type Identifier = LociIncarnation.ID
+  override type Sensor = (LociIncarnation.LSNS, String)
   //override type Sensor = Map[LSNS, Any]
-  override type Export = LociIncarnation.EXPORT
-  override type State = (Map[ID, LociIncarnation.EXPORT], Sensor) //right representation is Context
+  override type ExportMessage = (Identifier, LociIncarnation.EXPORT)
+  override type State = String //
+  override type Actuation = String
   //override type State = Context
 }
 
