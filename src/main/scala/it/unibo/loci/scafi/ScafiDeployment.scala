@@ -17,15 +17,20 @@ import LociIncarnation._
   with CommunicationComponent
   with StateComponent {
   @peer type Peer <: { type Tie <: Multiple[Peer] }
-  @peer type StateDevice <: Peer
-  @peer type ActuatorDevice <: Peer
-  @peer type CommunicationDevice <: Peer
-  @peer type BehaviourDevice <: Peer
-  @peer type SensorDevice <: Peer
-
   val identifier : P2PScafiDeployment.Identifier on Peer = on[Peer] { UUID.randomUUID().hashCode() }
   val exports : Var[Set[ExportMessage]] on Peer = on[Peer] { Var[Set[ExportMessage]](Set.empty) }
-
+  @peer type StateDevice <: Peer
+  override def get(id : P2PScafiDeployment.Identifier) : State on Peer = on[Peer] { "" }
+  override def update(id : P2PScafiDeployment.Identifier, state : State) : Unit on Peer = on[Peer] {}
+  @peer type ActuatorDevice <: Peer
+  override def act(id : P2PScafiDeployment.Identifier, export : Set[Actuation]) : Unit on ActuatorDevice = on[ActuatorDevice] {
+    println(s"$id data = ${export}")
+  }
+  @peer type CommunicationDevice <: Peer
+  override def exports(id: Int): Set[ExportMessage] on Peer = exports.now
+  override def put(id: Int, export: ExportMessage): Unit on Peer = exports.transform(exports => exports + export)
+  override def comm(id: Int, export: ExportMessage): Unit on Peer = on[Peer] { remote.call(put(id, export)) }
+  @peer type BehaviourDevice <: Peer
   override def compute(id: P2PScafiDeployment.Identifier, state: Pre): Post on Peer = {
     val program = new AggregateProgram {
       override def main(): Any = foldhood(0)(_ + _)(1)
@@ -37,34 +42,20 @@ import LociIncarnation._
     val e : EXPORT = program.round(context)
     (old, id -> e, Set(e.toString))
   }
-
+  @peer type SensorDevice <: Peer
   override def sense(id: P2PScafiDeployment.Identifier): Set[Sensor] on Peer = on[Peer] { Set.empty[Sensor] }
-  override def exports(id: Int): Set[ExportMessage] on Peer = exports.now
-
-  override def put(id: Int, export: ExportMessage): Unit on Peer = {
-    exports.transform(exports => exports + export)
-  }
-  override def get(id : P2PScafiDeployment.Identifier) : State on Peer = on[Peer] { "" }
-  override def update(id : P2PScafiDeployment.Identifier, state : State) : Unit on Peer = on[Peer] {}
-  override def act(id : P2PScafiDeployment.Identifier, export : Set[Actuation]) : Unit on ActuatorDevice = on[ActuatorDevice] {
-    println(s"$id data = ${export}")
-  }
-  override def comm(id: Int, export: ExportMessage): Unit on Peer = on[Peer] {
-    println("Here..")
-    remote.call(put(id, export))
-  }
 
   def main() = on[Peer] {
-    /*while(true) {
-      val sensor = sense(id)
-      val localExports = exports(id)
-      val state = get(id)
-      val computed = compute(id, (state, localExports, sensor))
-      act(id, computed._3)
-      comm(id, computed._2)
-      update(id, computed._1)
+    while(true) {
+      val sensor = sense(identifier)
+      val localExports = exports(identifier)
+      val state = get(identifier)
+      val computed = compute(identifier, (state, localExports, sensor))
+      act(identifier, computed._3)
+      comm(identifier, computed._2)
+      update(identifier, computed._1)
       Thread.sleep(1000)
-    }*/
+    }
   }
 }
 
