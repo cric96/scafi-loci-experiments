@@ -43,8 +43,8 @@ import rescala.reactives
 @multitier trait CommunicationComponent {
   self : LogicalPulverisableSystem =>
   @peer type CommunicationDevice
-  def connections(id : ID) : Set[ID] on CommunicationDevice
-  def fire(id : ID, export : Export) : Unit on CommunicationDevice
+  def put(id : ID, export : Export) : Unit on CommunicationDevice //in
+  def comm(id : ID, export : Export) : Unit on CommunicationDevice //out
 }
 
 @multitier trait CompleteLogicalSystem extends LogicalPulverisableSystem {
