@@ -8,7 +8,6 @@ import loci.transmitter.rescala._
 import loci.serializer.circe._
 import rescala.parrp.ParRPStruct
 import rescala.reactives
-
 @multitier trait LogicalPulverisableSystem {
   type ID
   type Sensor

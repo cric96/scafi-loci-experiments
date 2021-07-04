@@ -1,6 +1,5 @@
 package it.unibo.loci.scafi
 
-import it.unibo.scafi.incarnations.Incarnation
 import loci._
 import loci.communicator.tcp._
 import loci.language.Placement
@@ -40,7 +39,7 @@ import LociIncarnation._
   val state : Var[State] on Peer = on[Peer] { Var[State]((Map.empty, Set.empty)) }
   val id : ID on Peer = on[Peer] { UUID.randomUUID().hashCode() }
 
-  override def get(id: P2PScafiDeployment.ID): on[State, P2PScafiDeployment.Peer] = placed { state.readValueOnce }
+  override def get(id: P2PScafiDeployment.ID): on[State, P2PScafiDeployment.Peer] = placed { state.now }
 
   override def compute(id: P2PScafiDeployment.ID, state: State): on[Export, P2PScafiDeployment.Peer] = {
     val program = new AggregateProgram {
@@ -54,18 +53,23 @@ import LociIncarnation._
     e
   }
 
-  override def put(id: Int, export: LociIncarnation.Export with LociIncarnation.ExportOps): on[Unit, P2PScafiDeployment.Peer] = on[Peer] { }
+  override def put(id: Int, export: LociIncarnation.Export with LociIncarnation.ExportOps): on[Unit, P2PScafiDeployment.Peer] = on[Peer] {
+    //state.transform { case (exports, sensor) => (exports + (id -> export), sensor)}
+  }
 
   override def comm(id: Int, export: LociIncarnation.Export with LociIncarnation.ExportOps): on[Unit, P2PScafiDeployment.Peer] = on[Peer] {
     remote.call(put(id, export))
   }
 
   def main() = on[Peer] {
-    val sensor = sense(id)
-    val state = get(id)
-    val export = compute(id, state)
-    act(id, export)
-    comm(id, export)
+    while(true) {
+      val sensor = sense(id)
+      val state = get(id)
+      val export = compute(id, state)
+      act(id, export)
+      comm(id, export)
+      Thread.sleep(10000)
+    }
   }
 }
 
