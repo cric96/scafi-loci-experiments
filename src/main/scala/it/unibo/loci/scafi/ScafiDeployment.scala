@@ -1,6 +1,5 @@
 package it.unibo.loci.scafi
 
-import it.unibo.loci.scafi.P2PScafiDeployment.{BehaviourDevice, CommunicationDevice}
 import it.unibo.scafi.incarnations.Incarnation
 import loci._
 import loci.communicator.tcp._
@@ -45,17 +44,14 @@ import rescala.reactives
   with BehaviourComponent
   with CommunicationComponent
   with StateComponent {
-  @peer type Device <: StateDevice with ActuatorDevice with BehaviourDevice with SensorDevice { }
+  @peer type Device <: StateDevice with ActuatorDevice with BehaviourDevice with SensorDevice { type Tie <: Single[Broker] }
+  @peer type Broker <: CommunicationDevice { type Tie <: Multiple[Device]}
 
-  @peer type Broker <: CommunicationDevice
-  override type BehaviourDevice = this.type
+  override def compute(id: Int, state: (Int, Iterable[LociIncarnation.Export with LociIncarnation.ExportOps])): on[LociIncarnation.Export with LociIncarnation.ExportOps, BehaviourDevice] = ???
 
-  override def compute(id: Int, state: (Int, Iterable[LociIncarnation.Export with LociIncarnation.ExportOps])): on[LociIncarnation.Export with LociIncarnation.ExportOps, ThinThickScafiDeployment.type] = ???
+  override def connections(id: Int): on[Set[Int], CommunicationDevice] = ???
 
-  override def connections(id: Int): on[Set[Int], ThinThickScafiDeployment.type] = ???
+  override def fire(id: Int, export: LociIncarnation.Export with LociIncarnation.ExportOps): on[Unit, CommunicationDevice] = ???
 
-  override def fire(id: Int, export: LociIncarnation.Export with LociIncarnation.ExportOps): on[Unit, ThinThickScafiDeployment.type] = ???
-
-  override def get(id: Int): on[(Int, Iterable[LociIncarnation.Export with LociIncarnation.ExportOps]), ThinThickScafiDeployment.type] = ???
-
+  override def get(id: Int): on[(Int, Iterable[LociIncarnation.Export with LociIncarnation.ExportOps]), StateDevice] = ???
 }

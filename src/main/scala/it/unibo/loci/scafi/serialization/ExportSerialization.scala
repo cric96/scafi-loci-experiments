@@ -9,7 +9,8 @@ import it.unibo.scafi.distrib.actor.serialization.BasicSerializers
 import it.unibo.scafi.incarnations.Incarnation
 import loci.transmitter.IdenticallyTransmittable
 import play.api.libs.json._
-
+import play.api.libs.json.{Json => PlayJSon}
+import io.circe.Json
 trait ExportSerialization {
   self: Incarnation =>
   import BasicSerializers._
